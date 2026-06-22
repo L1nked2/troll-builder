@@ -1,0 +1,118 @@
+{
+  "captains": [
+    {
+      "riot_id_name": "CaptainExample",
+      "riot_id_tag_line": "KR1",
+      "puu_id": "example-captain-puuid",
+      "level": 100,
+      "profile_icon_id": 29,
+      "tier_info": {
+        "solo": {
+          "tier": "GOLD",
+          "division": 2,
+          "lp": 45,
+          "wins": 50,
+          "losses": 45,
+          "win_rate": 52.6
+        },
+        "flex": {
+          "tier": "PLATINUM",
+          "division": 4,
+          "lp": 12,
+          "wins": 20,
+          "losses": 18,
+          "win_rate": 52.6
+        }
+      },
+      "top_champions": [
+        {
+          "champion_id": "86",
+          "name_kr": "가렌",
+          "name_en": "Garen",
+          "image": "Garen.png",
+          "games": 20,
+          "win_rate": 55.0,
+          "kda": 2.5,
+          "kills": 6.0,
+          "deaths": 4.0,
+          "assists": 4.0
+        }
+      ],
+      "recent_matches": [
+        {
+          "win": true,
+          "queue_type": "솔로랭크",
+          "champion_name_kr": "가렌",
+          "champion_name_en": "Garen",
+          "champion_image": "Garen.png",
+          "kills": 8,
+          "deaths": 3,
+          "assists": 7,
+          "duration": 1800,
+          "timestamp": 1719000000000
+        }
+      ],
+      "season_history": [
+        {
+          "season": "S15: GOLD",
+          "tipsy": "[ 솔로랭크 S15 ]<BR><BR>최종 기록: GOLD II - 45<BR>최고 기록: GOLD I - 20<BR><HR>"
+        }
+      ],
+      "solo_lp_graph": {
+        "labels": ["6.20", "6.21", "6.22"],
+        "data": [
+          { "y": 1640, "name": "GOLD II 40 LP" },
+          { "y": 1645, "name": "GOLD II 45 LP" },
+          { "y": 1660, "name": "GOLD II 60 LP" }
+        ]
+      },
+      "flex_lp_graph": {
+        "labels": ["6.20", "6.21", "6.22"],
+        "data": [
+          { "y": 2010, "name": "PLATINUM IV 10 LP" },
+          { "y": 2012, "name": "PLATINUM IV 12 LP" },
+          { "y": 2030, "name": "PLATINUM IV 30 LP" }
+        ]
+      },
+      "position": "미드",
+      "updated_at": "2026-06-23T00:00:00+00:00"
+    }
+  ],
+  "players": [
+    {
+      "riot_id_name": "PlayerExample",
+      "riot_id_tag_line": "KR1",
+      "puu_id": "example-player-puuid",
+      "level": 80,
+      "profile_icon_id": 29,
+      "tier_info": {
+        "solo": {
+          "tier": "SILVER",
+          "division": 1,
+          "lp": 75,
+          "wins": 30,
+          "losses": 30,
+          "win_rate": 50.0
+        },
+        "flex": {
+          "tier": "UNRANKED",
+          "division": 0,
+          "lp": 0,
+          "wins": 0,
+          "losses": 0,
+          "win_rate": 0
+        }
+      },
+      "top_champions": [],
+      "recent_matches": [],
+      "season_history": [],
+      "solo_lp_graph": null,
+      "flex_lp_graph": null,
+      "position": "원딜, 서폿",
+      "updated_at": "2026-06-23T00:00:00+00:00"
+    }
+  ],
+  "version": "16.12.1",
+  "initial_budget": 1000,
+  "generated_at": "2026-06-23T00:00:00+00:00"
+}

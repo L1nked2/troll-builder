@@ -1,0 +1,8 @@
+players_data.json
+players_input.json
+.venv/
+__pycache__/
+*.py[cod]
+.agents/
+.codex/
+temp_*.html

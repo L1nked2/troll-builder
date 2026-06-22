@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOL 내전 팀 경매 드래프트 (LoL In-House Auction Draft)</title>
+  <!-- Google Fonts: Outfit & Noto Sans KR -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Ambient background glow blobs -->
+  <div class="glow-blob blob-1"></div>
+  <div class="glow-blob blob-2"></div>
+  <div class="glow-blob blob-3"></div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <span class="logo-icon"><i data-lucide="gavel"></i></span>
+        <div class="logo-text">
+          <h1>Troll Auction</h1>
+          <p>롤 내전 포인트 경매 팀 빌더</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="turn-indicator" id="turn-display">
+          <span style="color: var(--text-secondary); font-weight: 600;">남은 선수: <strong id="remaining-count" style="color: var(--gold-theme);">0명</strong></span>
+        </div>
+        <button class="btn btn-secondary" id="btn-reset" title="경매 진행 초기화">
+          <i data-lucide="rotate-ccw"></i> 초기화
+        </button>
+        <button class="btn btn-primary" id="btn-export" title="경매 결과 복사">
+          <i data-lucide="clipboard"></i> 결과 복사
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="app-workspace auction-workspace">
+      
+      <!-- Top Section: Auction Desk & Nominated Player Showcase (Center-aligned) -->
+      <section class="auction-desk-panel" id="auction-desk">
+        <div class="desk-header">
+          <h2>실시간 경매대 (AUCTION STAGE)</h2>
+        </div>
+        
+        <div class="desk-content" id="auction-desk-content">
+          <!-- Nominated Player Details Showcase -->
+          <div class="nominee-showcase-placeholder" id="nominee-placeholder">
+            <span class="placeholder-icon"><i data-lucide="user-plus"></i></span>
+            <p>하단 참가자 목록에서 <strong>경매 올리기</strong> 버튼을 클릭하여 선수를 지목하세요.</p>
+          </div>
+          
+          <div class="nominee-showcase-card hidden" id="nominee-card">
+            <!-- Left Side: Profile & Ranks -->
+            <div class="nominee-profile-section">
+              <div class="profile-main">
+                <div class="profile-icon-container">
+                  <img id="nominee-profile-icon" src="https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/29.png" alt="Profile Icon">
+                  <span class="profile-level" id="nominee-profile-level">--</span>
+                </div>
+                <div class="profile-names">
+                  <div class="nominee-name-row">
+                    <h3 id="nominee-summoner-name">Summoner Name</h3>
+                    <span class="nominee-tag-inline" id="nominee-summoner-tag">#TAG</span>
+                    <span class="position-badge nominee-position-badge" id="nominee-position">--</span>
+                  </div>
+                  <div class="nominee-tier-row">
+                    <span class="tier-label" id="nominee-solo-tier">솔랭: UNRANKED</span>
+                    <span class="tier-label" id="nominee-flex-tier">자랭: UNRANKED</span>
+                  </div>
+                </div>
+              </div>
+              <!-- LP Trend Line Chart -->
+              <div class="nominee-chart-wrapper">
+                <div class="nominee-chart-tabs chart-tabs">
+                  <button class="chart-tab-btn active" id="tab-nominee-solo-trend">솔로랭크</button>
+                  <button class="chart-tab-btn" id="tab-nominee-flex-trend">자유랭크</button>
+                </div>
+                <canvas id="nominee-lp-chart"></canvas>
+                <div id="nominee-chart-empty" class="chart-empty hidden">최근 LP 변동 데이터가 없습니다.</div>
+              </div>
+              
+              <div class="nominee-rank-grid">
+                <div class="nominee-rank-card">
+                  <span class="rank-title">솔로 랭크</span>
+                  <p class="rank-value" id="nominee-solo-detail">UNRANKED (0 LP)</p>
+                  <p class="rank-wl" id="nominee-solo-wl">0승 0패 (0%)</p>
+                </div>
+                <div class="nominee-rank-card">
+                  <span class="rank-title">자유 랭크</span>
+                  <p class="rank-value" id="nominee-flex-detail">UNRANKED (0 LP)</p>
+                  <p class="rank-wl" id="nominee-flex-wl">0승 0패 (0%)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Middle Side: Most Champions -->
+            <div class="nominee-champs-section">
+              <h4>모스트 챔피언</h4>
+              <div class="nominee-champs-list" id="nominee-top-champs">
+                <!-- Dynamically populated -->
+              </div>
+              <div class="nominee-season-section">
+                <h4>역대 시즌 기록</h4>
+                <div class="nominee-season-list" id="nominee-season-history">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Side: Recent Match history -->
+            <div class="nominee-matches-section">
+              <h4>최근 전적 (최근 10경기)</h4>
+              <div class="nominee-matches-list" id="nominee-matches">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bidding Controls Panel -->
+        <div class="bidding-bar hidden" id="bidding-controls-bar">
+          <div class="bid-input-group">
+            <label for="bid-team-select">낙찰 팀장</label>
+            <select id="bid-team-select">
+              <!-- Dynamically populated with team captains -->
+            </select>
+          </div>
+
+          <div class="bid-input-group">
+            <label for="bid-amount">낙찰 금액 (pt)</label>
+            <div class="bid-amount-control">
+              <button class="bid-step-btn" onclick="adjustBid(-50)">-50</button>
+              <button class="bid-step-btn" onclick="adjustBid(-10)">-10</button>
+              <input type="number" id="bid-amount" value="50" min="0" max="1000" step="10">
+              <button class="bid-step-btn" onclick="adjustBid(10)">+10</button>
+              <button class="bid-step-btn" onclick="adjustBid(50)">+50</button>
+            </div>
+          </div>
+
+          <div class="bid-action-buttons">
+            <button class="btn btn-secondary" id="btn-bid-pass">유찰</button>
+            <button class="btn btn-primary" id="btn-bid-confirm"><i data-lucide="check-circle-2"></i> 낙찰 완료</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom Section: Dynamic Team Roster Columns (Fluid Layout) -->
+      <section class="teams-container-section">
+        <div class="section-title">
+          <i data-lucide="users"></i> 팀별 라인업 상황
+        </div>
+        <div class="teams-row-wrapper" id="teams-columns-container">
+          <!-- Dynamically populated based on captains count -->
+          <div class="loading-state">
+            <p>팀 정보를 구성하는 중...</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Available Players Pool Section -->
+    <footer class="player-pool-section">
+      <div class="pool-header">
+        <div class="pool-title">
+          <h2>경매 대상자 목록 (POOL)</h2>
+          <span class="pool-badge" id="pool-total">0</span>
+        </div>
+        
+        <div class="pool-filters">
+          <div class="search-box">
+            <i data-lucide="search"></i>
+            <input type="text" id="player-search" placeholder="플레이어 이름 검색...">
+          </div>
+          <div class="filter-group">
+            <select id="tier-filter">
+              <option value="ALL">모든 티어</option>
+              <option value="CHALLENGER">CHALLENGER</option>
+              <option value="GRANDMASTER">GRANDMASTER</option>
+              <option value="MASTER">MASTER</option>
+              <option value="DIAMOND">DIAMOND</option>
+              <option value="EMERALD">EMERALD</option>
+              <option value="PLATINUM">PLATINUM</option>
+              <option value="GOLD">GOLD</option>
+              <option value="SILVER">SILVER</option>
+              <option value="BRONZE">BRONZE</option>
+              <option value="IRON">IRON</option>
+              <option value="UNRANKED">UNRANKED</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <select id="position-filter">
+              <option value="ALL">모든 포지션</option>
+              <option value="탑">탑</option>
+              <option value="정글">정글</option>
+              <option value="미드">미드</option>
+              <option value="원딜">원딜</option>
+              <option value="서폿">서폿</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="player-pool-grid" id="player-pool-container">
+        <!-- Player Cards will be dynamically rendered here -->
+        <div class="loading-state">
+          <span class="spinner"></span>
+          <p>플레이어 데이터를 불러오는 중...</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Player Profile Detail Modal -->
+  <div class="modal-overlay" id="player-modal">
+    <div class="modal-card">
+      <button class="modal-close" id="btn-close-modal"><i data-lucide="x"></i></button>
+      
+      <!-- Modal Header (Riot Profile & Level/Rank) -->
+      <div class="modal-header-section">
+        <div class="profile-main">
+          <div class="profile-icon-container">
+            <img id="modal-profile-icon" src="https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/29.png" alt="Profile Icon">
+            <span class="profile-level" id="modal-profile-level">--</span>
+          </div>
+          <div class="profile-names">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h2 id="modal-summoner-name">Summoner Name</h2>
+              <span class="position-badge" id="modal-position">--</span>
+            </div>
+            <p id="modal-summoner-tag">#TAG</p>
+          </div>
+        </div>
+
+        <div class="rank-status-container">
+          <div class="rank-card solo-rank">
+            <span class="rank-type">SOLO RANK</span>
+            <div class="rank-details">
+              <div class="tier-icon-wrap" id="modal-solo-tier-icon">--</div>
+              <div class="rank-text">
+                <span class="tier-label" id="modal-solo-tier">UNRANKED</span>
+                <span class="lp-label" id="modal-solo-lp">0 LP</span>
+                <span class="wl-label" id="modal-solo-wl">0승 0패 (0%)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="rank-card flex-rank">
+            <span class="rank-type">FLEX RANK</span>
+            <div class="rank-details">
+              <div class="tier-icon-wrap" id="modal-flex-tier-icon">--</div>
+              <div class="rank-text">
+                <span class="tier-label" id="modal-flex-tier">UNRANKED</span>
+                <span class="lp-label" id="modal-flex-lp">0 LP</span>
+                <span class="wl-label" id="modal-flex-wl">0승 0패 (0%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Content Tab Section -->
+      <div class="modal-body-section">
+        <!-- Ranks & Trend Graphs -->
+        <div class="modal-sub-card charts-box">
+          <div class="charts-header">
+            <h3>티어 및 LP 변동 추이</h3>
+            <div class="chart-tabs">
+              <button class="chart-tab-btn active" id="tab-solo-trend">솔로랭크</button>
+              <button class="chart-tab-btn" id="tab-flex-trend">자유랭크</button>
+              <button class="chart-tab-btn" id="tab-season-history">시즌 기록</button>
+            </div>
+          </div>
+          <div class="modal-chart-container">
+            <canvas id="modal-trend-chart"></canvas>
+            <div id="modal-chart-empty" class="chart-empty hidden">최근 변동 데이터가 없습니다.</div>
+          </div>
+        </div>
+
+        <!-- Most Played Champions -->
+        <div class="modal-sub-card top-champions-box">
+          <h3>모스트 챔피언 (최근 시즌)</h3>
+          <div class="top-champions-list" id="modal-top-champs">
+            <!-- Dynamic Champions -->
+          </div>
+        </div>
+
+        <!-- Recent Matches History -->
+        <div class="modal-sub-card match-history-box">
+          <h3>최근 경기 분석 (최대 10경기)</h3>
+          <div class="match-history-list" id="modal-match-history">
+            <!-- Dynamic Matches -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Custom Confirm Modal -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-card confirm-card" style="max-width: 400px; text-align: center; padding: 28px;">
+      <h3 id="confirm-title" style="color: var(--gold-theme); margin-bottom: 12px; font-size: 18px; font-weight: 800;">확인</h3>
+      <p id="confirm-message" style="margin-bottom: 24px; font-size: 14px; color: var(--text-secondary); line-height: 1.5;">정말로 진행하시겠습니까?</p>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button class="btn btn-secondary" id="btn-confirm-cancel" style="padding: 8px 20px;">취소</button>
+        <button class="btn btn-primary" id="btn-confirm-ok" style="padding: 8px 20px;">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Export Modal -->
+  <div class="modal-overlay" id="export-modal">
+    <div class="modal-card export-card" style="max-width: 600px; padding: 28px;">
+      <button class="modal-close" id="btn-close-export" onclick="document.getElementById('export-modal').classList.remove('active')"><i data-lucide="x"></i></button>
+      <h3 style="color: var(--gold-theme); margin-bottom: 12px; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;"><i data-lucide="clipboard-check" style="color: var(--gold-theme);"></i> 드래프트 결과</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">아래 결과 텍스트가 복사되었습니다. 필요 시 텍스트 상자에서 직접 긁어갈 수 있습니다.</p>
+      <textarea id="export-textarea" readonly style="width: 100%; height: 260px; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-color-hover); border-radius: 8px; color: var(--text-primary); font-family: monospace; padding: 12px; font-size: 12px; resize: none; outline: none; margin-bottom: 16px;"></textarea>
+      <div style="text-align: right;">
+        <button class="btn btn-primary" id="btn-export-close" onclick="document.getElementById('export-modal').classList.remove('active')">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Popup -->
+  <div class="toast" id="toast-message">결과가 클립보드에 복사되었습니다!</div>
+
+  <!-- App Logic Script -->
+  <script src="app.js"></script>
+</body>
+</html>

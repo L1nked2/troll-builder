@@ -579,6 +579,11 @@ function setupEventListeners() {
     renderPool();
   });
 
+  const randomPickBtn = document.getElementById("btn-random-pick");
+  if (randomPickBtn) {
+    randomPickBtn.addEventListener("click", nominateRandomPlayer);
+  }
+
   // Bid Amount direct keyup input synchronization
   const bidAmountInput = document.getElementById("bid-amount");
   bidAmountInput.addEventListener("input", (e) => {
@@ -648,12 +653,8 @@ function updateAppView() {
   lucide.createIcons();
 }
 
-// Render available players list
-function renderPool() {
-  const poolContainer = document.getElementById("player-pool-container");
-  poolContainer.innerHTML = "";
-
-  // Gather all drafted player PUUIDs
+// Get currently filtered pool players (excluding drafted and nominated players)
+function getFilteredPoolPlayers() {
   const draftedPuuids = [];
   state.teams.forEach(team => {
     team.roster.forEach(player => {
@@ -661,12 +662,11 @@ function renderPool() {
     });
   });
 
-  // Filter out nominated player as well
   if (state.nominatedPlayer) {
     draftedPuuids.push(state.nominatedPlayer.puu_id);
   }
 
-  const filtered = state.poolPlayers.filter(player => {
+  return state.poolPlayers.filter(player => {
     const isDrafted = draftedPuuids.includes(player.puu_id);
     const matchesSearch = player.riot_id_name.toLowerCase().includes(state.filters.search);
 
@@ -684,6 +684,40 @@ function renderPool() {
 
     return !isDrafted && matchesSearch && matchesTier && matchesPosition;
   });
+}
+
+// Nominate a random player from the filtered pool
+function nominateRandomPlayer() {
+  const filtered = getFilteredPoolPlayers();
+
+  if (filtered.length === 0) {
+    alert("경매 풀에 남은 선수가 없거나 필터 조건에 맞는 선수가 없습니다.");
+    return;
+  }
+
+  const executePick = () => {
+    const randomIndex = Math.floor(Math.random() * filtered.length);
+    const randomPlayer = filtered[randomIndex];
+    nominatePlayer(randomPlayer.puu_id);
+  };
+
+  if (state.nominatedPlayer) {
+    showConfirm(
+      "선수 교체 확인", 
+      "이미 경매대에 올라와 있는 선수가 있습니다. 다른 선수를 랜덤 지목하시겠습니까?", 
+      executePick
+    );
+  } else {
+    executePick();
+  }
+}
+
+// Render available players list
+function renderPool() {
+  const poolContainer = document.getElementById("player-pool-container");
+  poolContainer.innerHTML = "";
+
+  const filtered = getFilteredPoolPlayers();
 
   document.getElementById("pool-total").textContent = filtered.length;
 

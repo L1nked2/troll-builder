@@ -242,6 +242,20 @@ body {
   transform: translateY(-2px);
 }
 
+.btn-random {
+  background: linear-gradient(135deg, var(--master) 0%, #7c3aed 100%);
+  color: #fff;
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 4px 15px rgba(168, 85, 247, 0.2);
+}
+
+.btn-random:hover {
+  background: linear-gradient(135deg, #b066ff 0%, #8b5cf6 100%);
+  border-color: rgba(168, 85, 247, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
+}
+
 /* Workspace Layout */
 .auction-workspace {
   display: flex;

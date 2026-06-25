@@ -56,7 +56,7 @@ def parse_utc_iso(value):
         return None
 
 def make_placeholder(entry):
-    return {
+    placeholder = {
         "riot_id_name": entry.get("riot_id_name"),
         "riot_id_tag_line": entry.get("riot_id_tag_line", "KR1"),
         "position": entry.get("position", ""),
@@ -74,6 +74,9 @@ def make_placeholder(entry):
         "flex_lp_graph": None,
         "updated_at": now_utc_iso()
     }
+    if "initial_budget" in entry:
+        placeholder["initial_budget"] = entry["initial_budget"]
+    return placeholder
 
 def load_existing_data(output_path):
     if not os.path.exists(output_path):
@@ -107,6 +110,10 @@ def with_input_position(player, entry):
     copied["position"] = entry.get("position", "")
     copied["riot_id_name"] = copied.get("riot_id_name") or entry.get("riot_id_name")
     copied["riot_id_tag_line"] = copied.get("riot_id_tag_line") or entry.get("riot_id_tag_line", "KR1")
+    if "initial_budget" in entry:
+        copied["initial_budget"] = entry["initial_budget"]
+    elif "initial_budget" in copied:
+        del copied["initial_budget"]
     return copied
 
 def build_arg_parser():
@@ -475,6 +482,8 @@ def refresh_entry(entry, champ_mapping, skip_fow):
         data.update(fow_info)
 
     data["position"] = entry.get("position", "")
+    if "initial_budget" in entry:
+        data["initial_budget"] = entry["initial_budget"]
     data["updated_at"] = now_utc_iso()
     return data
 

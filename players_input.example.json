@@ -1,7 +1,7 @@
 {
   "initial_budget": 1000,
   "captains": [
-    { "riot_id_name": "CaptainExample", "riot_id_tag_line": "KR1", "position": "미드" }
+    { "riot_id_name": "CaptainExample", "riot_id_tag_line": "KR1", "position": "미드", "initial_budget": 950 }
   ],
   "players": [
     { "riot_id_name": "PlayerExample", "riot_id_tag_line": "KR1", "position": "원딜, 서폿" }

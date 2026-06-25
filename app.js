@@ -549,12 +549,16 @@ async function loadData() {
 
 // Build teams based on captains list
 function initTeams() {
-  state.teams = state.captains.map(captain => ({
-    captain: captain,
-    roster: [null, null, null, null], // 4 players slot (excluding Captain)
-    bids: [0, 0, 0, 0],               // Bids corresponding to the slot
-    budget: state.initialBudget
-  }));
+  state.teams = state.captains.map(captain => {
+    const initBudget = captain.initial_budget !== undefined ? parseInt(captain.initial_budget) : state.initialBudget;
+    return {
+      captain: captain,
+      roster: [null, null, null, null], // 4 players slot (excluding Captain)
+      bids: [0, 0, 0, 0],               // Bids corresponding to the slot
+      initialBudget: initBudget,
+      budget: initBudget
+    };
+  });
 }
 
 // Bind interactive event listeners
@@ -591,6 +595,16 @@ function setupEventListeners() {
     if (val < 0) val = 0;
     state.nominatedBid = val;
   });
+
+  const bidTeamSelect = document.getElementById("bid-team-select");
+  if (bidTeamSelect) {
+    bidTeamSelect.addEventListener("change", (e) => {
+      const teamIndex = parseInt(e.target.value);
+      if (!isNaN(teamIndex) && state.teams[teamIndex]) {
+        document.getElementById("bid-amount").max = state.teams[teamIndex].budget;
+      }
+    });
+  }
 
   // Reset and Copy buttons
   document.getElementById("btn-reset").addEventListener("click", resetDraft);
@@ -796,7 +810,7 @@ function renderTeams() {
   state.teams.forEach((team, teamIndex) => {
     const captain = team.captain;
     const profileIcon = `https://ddragon.leagueoflegends.com/cdn/${state.version}/img/profileicon/${captain.profile_icon_id || 29}.png`;
-    const budgetPercent = (team.budget / state.initialBudget) * 100;
+    const budgetPercent = (team.budget / team.initialBudget) * 100;
 
     // Choose dynamic color for budget bar based on remaining points
     let budgetColor = "var(--win-color)"; // Green
@@ -1029,6 +1043,7 @@ function renderAuctionDesk() {
   // Populate bidding Captain selection dropdown
   const select = document.getElementById("bid-team-select");
   select.innerHTML = "";
+  let firstValidIndex = -1;
   state.teams.forEach((team, index) => {
     // Disable captain team if their roster is already full (4 members drafted)
     const isFull = team.roster.filter(Boolean).length >= 4;
@@ -1037,7 +1052,16 @@ function renderAuctionDesk() {
     option.disabled = isFull;
     option.textContent = `${team.captain.riot_id_name} (${team.budget} pt)${isFull ? ' [풀]' : ''}`;
     select.appendChild(option);
+    if (!isFull && firstValidIndex === -1) {
+      firstValidIndex = index;
+    }
   });
+
+  // Set default selection to first non-full team
+  if (firstValidIndex !== -1) {
+    select.value = firstValidIndex;
+    document.getElementById("bid-amount").max = state.teams[firstValidIndex].budget;
+  }
 
   // Sync Bidding Bid amount input
   document.getElementById("bid-amount").value = state.nominatedBid;
@@ -1351,7 +1375,7 @@ function exportTeams() {
 
   state.teams.forEach(team => {
     const captainName = team.captain.riot_id_name;
-    const spentBudget = state.initialBudget - team.budget;
+    const spentBudget = team.initialBudget - team.budget;
     output += `👑 ${captainName} 팀 [사용 포인트: ${spentBudget} pt / 남은 포인트: ${team.budget} pt]\n`;
 
     // List roster slots

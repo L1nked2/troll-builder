@@ -2,22 +2,6 @@
 # Move to script directory
 cd "$(dirname "$0")"
 
-# Activate venv if it exists
-if [ -d ".venv" ]; then
-  echo "Activating virtual environment (.venv)..."
-  if [ -f ".venv/Scripts/activate" ]; then
-    source .venv/Scripts/activate
-  elif [ -f ".venv/bin/activate" ]; then
-    source .venv/bin/activate
-  fi
-  
-  # Install requirements if requests is missing
-  if ! python -c "import requests" &>/dev/null; then
-    echo "Installing missing dependencies from requirements.txt..."
-    pip install -r requirements.txt
-  fi
-fi
-
 echo "Starting Local Server at http://localhost:8000..."
 
 # Open default browser (handles Git Bash, WSL, and native environments)
@@ -32,4 +16,4 @@ else
 fi
 
 # Run Python HTTP Server
-python -m http.server 8000
+python -m http.server 8000 --bind 127.0.0.1

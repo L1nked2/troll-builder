@@ -6,3 +6,5 @@ __pycache__/
 .agents/
 .codex/
 temp_*.html
+_site/
+test-results/

@@ -21,7 +21,41 @@
   <div class="glow-blob blob-2"></div>
   <div class="glow-blob blob-3"></div>
 
-  <div class="app-container">
+  <main class="setup-container" id="setup-page">
+    <header class="setup-hero">
+      <span class="setup-eyebrow">TROLL AUCTION · LOL IN-HOUSE</span>
+      <h1>멤버를 모으고,<br><em>우리 팀을 완성하세요.</em></h1>
+      <p>팀장과 참가자를 입력하면 내전 경매가 준비됩니다.<br>전적은 필요한 순간에 조회하고, 예산 안에서 팀을 구성하세요.</p>
+      <div class="setup-steps"><span><b>01</b> 멤버 입력</span><span><b>02</b> 전적 조회</span><span><b>03</b> 경매 시작</span></div>
+    </header>
+
+    <form id="setup-form" novalidate>
+      <div class="setup-settings">
+        <label for="setup-budget">팀 기본 예산 <span>pt</span></label>
+        <input id="setup-budget" type="number" value="1000" min="0" max="1000000" step="1" required>
+        <p>팀장별로 다른 예산을 입력할 수도 있습니다.</p>
+      </div>
+      <div class="setup-sections">
+        <section class="setup-section">
+          <div class="setup-section-heading"><div><span class="setup-section-icon">01</span><h2>팀장 <small id="setup-captain-count">0명</small></h2></div><button type="button" class="btn btn-secondary" id="btn-add-captain">+ 팀장 추가</button></div>
+          <p class="setup-section-help">각 팀의 팀장입니다. 팀장 한 명당 선수 네 명을 낙찰할 수 있습니다.</p>
+          <div id="setup-captains" class="setup-rows"></div>
+        </section>
+        <section class="setup-section">
+          <div class="setup-section-heading"><div><span class="setup-section-icon">02</span><h2>참가자 <small id="setup-player-count">0명</small></h2></div><button type="button" class="btn btn-secondary" id="btn-add-player">+ 참가자 추가</button></div>
+          <p class="setup-section-help">경매에 참여할 선수입니다. Riot ID는 닉네임#태그 형식으로 입력하세요.</p>
+          <div id="setup-players" class="setup-rows"></div>
+        </section>
+      </div>
+      <p id="setup-error" class="setup-error" role="alert" hidden></p>
+      <div class="setup-submit-bar">
+        <div><strong id="setup-summary">팀장과 참가자를 입력해주세요.</strong><p>현재 페이지에서만 보관됩니다. 새로고침하거나 페이지를 닫으면 초기화됩니다.</p><p id="setup-edit-notice" hidden>참가자를 다시 적용하면 경매 배정과 예산이 초기화됩니다.</p></div>
+        <div class="setup-submit-actions"><button type="button" class="btn btn-secondary" id="btn-cancel-setup" hidden>경매로 돌아가기</button><button type="submit" class="btn btn-primary">경매 준비하기 <span aria-hidden="true">→</span></button></div>
+      </div>
+    </form>
+  </main>
+
+  <div class="app-container" id="auction-page" hidden>
     <!-- Header -->
     <header class="app-header">
       <div class="logo-area">
@@ -33,6 +67,8 @@
       </div>
 
       <div class="header-controls">
+        <button class="btn btn-secondary" id="btn-edit-participants"><i data-lucide="users"></i> 참가자 편집</button>
+        <button class="btn btn-primary" id="btn-update-all"><i data-lucide="refresh-cw"></i> 모든 유저 업데이트</button>
         <div class="turn-indicator" id="turn-display">
           <span style="color: var(--text-secondary); font-weight: 600;">남은 선수: <strong id="remaining-count" style="color: var(--gold-theme);">0명</strong></span>
         </div>
@@ -45,6 +81,13 @@
       </div>
     </header>
 
+    <section class="records-panel" aria-label="참가자 전적 관리">
+      <div class="records-heading"><h2>참가자 · 전적</h2><span class="session-badge">이 페이지에만 저장</span></div>
+      <p class="records-help">팀장과 낙찰된 선수도 개별 갱신할 수 있습니다. 업데이트는 DEEPLOL의 조회 결과를 다시 불러오며 경매 배정과 예산을 유지합니다.</p>
+      <p id="update-progress" class="update-progress" role="status" aria-live="polite">아직 전적을 조회하지 않았습니다.</p>
+      <div id="participant-records" class="participant-records"></div>
+    </section>
+
     <!-- Main Workspace -->
     <main class="app-workspace auction-workspace">
       
@@ -52,6 +95,7 @@
       <section class="auction-desk-panel" id="auction-desk">
         <div class="desk-header">
           <h2>실시간 경매대 (AUCTION STAGE)</h2>
+          <span id="nominee-refresh-action"></span>
         </div>
         
         <div class="desk-content" id="auction-desk-content">
@@ -233,6 +277,7 @@
       
       <!-- Modal Header (Riot Profile & Level/Rank) -->
       <div class="modal-header-section">
+        <div class="modal-record-actions"><button class="btn btn-secondary" id="btn-modal-refresh">전적 새로고침</button><p id="modal-record-status" role="status"></p></div>
         <div class="profile-main">
           <div class="profile-icon-container">
             <img id="modal-profile-icon" src="https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/29.png" alt="Profile Icon">
@@ -279,7 +324,7 @@
         <!-- Ranks & Trend Graphs -->
         <div class="modal-sub-card charts-box">
           <div class="charts-header">
-            <h3>티어 및 LP 변동 추이</h3>
+          <h3>이 페이지의 LP 조회 추이 · 시즌 기록</h3>
             <div class="chart-tabs">
               <button class="chart-tab-btn active" id="tab-solo-trend">솔로랭크</button>
               <button class="chart-tab-btn" id="tab-flex-trend">자유랭크</button>
@@ -340,6 +385,8 @@
   <div class="toast" id="toast-message">결과가 클립보드에 복사되었습니다!</div>
 
   <!-- App Logic Script -->
+  <script src="record-client.js"></script>
+  <script src="session.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
